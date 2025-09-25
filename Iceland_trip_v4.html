@@ -128,10 +128,11 @@
     </div>
 
     <script>
-        // --- DATA FROM CSV FILES ---
+        // --- DATA LOADING & FALLBACK ---
 
-        // Data from "冰島行程住宿規劃.xlsx - 行程.csv"
-        const itineraryCSVData = `
+        async function loadTripData() {
+            // Fallback data in case CSV files are not found
+            const fallbackItineraryCSVData = `
 第一天：10 月 11 日（六） - 抵達冰島，溫泉與市區補給,,,,,
 時間,行程,建議交通時間,建議停留時間,備註與建議,google link
 08:00,抵達 凱夫拉維克國際機場 (KEF),,,抵達後，領取行李並準備前往租車公司。,
@@ -144,7 +145,7 @@
 16:00-17:00,開車前往 雷克雅維克市區,35 分鐘,,開車前往 Airbnb 辦理入住。,
 17:00-18:00,Airbnb 入住,,1 小時,安頓行李，短暫休息。,
 18:00-19:00,雷克雅維克市區自由活動,,依個人喜好,探索市中心，可步行前往哈爾格林姆教堂、太陽航海者等景點。,
-19:00,晚餐時間,,依個人喜好,在市中心享用晚餐，體驗冰島在地美食。,
+19:00,晚餐時間bbb,,依個人喜好,在市中心享用晚餐，體驗冰島在地美食。,
 ,,,,,,
 第二天：10 月 12 日（日） - 悠閒探索雷克雅維克市區,,,,,
 時間,行程,建議交通時間,建議停留時間,備註與建議,
@@ -259,11 +260,8 @@
 第十二天：10 月 22 日（三） - 抵達台北,,,,,
 時間,行程,建議交通時間,建議停留時間,備註與建議,
 全天,轉機與返程,,,抵達桃園國際機場，結束美好旅程。,
-
 `;
-
-        // Data from "冰島行程住宿規劃.xlsx - 住宿.csv"
-        const accommodationCSVData = `
+            const fallbackAccommodationCSVData = `
 ,地區,平台,房型,早餐,廚房,停車,Link,地址,Map Link
 10/11-10/13,雷克雅維克 Reykjavik,AirBnb,整棟,x,v,路邊,AirBnB Link,"Bergþórugata 35 2, 雷克雅維克, Reykjavíkurborg 101, 冰島",https://maps.app.goo.gl/zGtwcjfEUzn76h9S8
 10/12-10/13,雷克雅維克 Reykjavik,AirBnb,整棟,x,v,路邊,AirBnB Link,"Bergþórugata 35 2, 雷克雅維克, Reykjavíkurborg 101, 冰島",https://maps.app.goo.gl/zGtwcjfEUzn76h9S8
@@ -276,6 +274,31 @@
 10/19-10/20,阿爾納斯塔皮 Arnarstapi,Booking,整棟,x,v,v,Grund,"Grund, 311 Rauðamelur, 冰島",https://maps.app.goo.gl/XXK1bGmvcAvS782w8
 10/20-10/21,雷克雅維克 Reykjavik,Booking,雙人房*4,x,x,,奧丁斯維酒店,"Thorsgata 1, 101 雷克雅維克, 冰島",https://maps.app.goo.gl/tdSRB1K34M7VELtw5
 `;
+            try {
+                // Try to fetch data from external CSV files
+                const [itineraryResponse, accommodationResponse] = await Promise.all([
+                    fetch('itinerary.csv'),
+                    fetch('accommodation.csv')
+                ]);
+
+                if (!itineraryResponse.ok || !accommodationResponse.ok) {
+                    throw new Error('CSV files not found or failed to load. Status: ' + itineraryResponse.status + ', ' + accommodationResponse.status);
+                }
+                
+                const itineraryData = await itineraryResponse.text();
+                const accommodationData = await accommodationResponse.text();
+
+                console.log("Successfully loaded data from itinerary.csv and accommodation.csv.");
+                return { itineraryData, accommodationData };
+
+            } catch (error) {
+                console.warn("Could not load data from CSV files. Using hardcoded fallback data.", error.message);
+                return { 
+                    itineraryData: fallbackItineraryCSVData, 
+                    accommodationData: fallbackAccommodationCSVData 
+                };
+            }
+        }
 
         // --- PARSING LOGIC ---
 
@@ -444,9 +467,11 @@
 
         // --- INITIALIZATION ---
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const tripData = parseItinerary(itineraryCSVData);
-            const accommodationMap = parseAccommodation(accommodationCSVData);
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { itineraryData, accommodationData } = await loadTripData();
+            
+            const tripData = parseItinerary(itineraryData);
+            const accommodationMap = parseAccommodation(accommodationData);
             const dayTabsContainer = document.getElementById('day-tabs');
 
             tripData.forEach((day, index) => {
