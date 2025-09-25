@@ -375,10 +375,12 @@
                 let endDate = new Date(2025, endMonth - 1, endDay);
                 
                 // Handle cases like 10/11-10/13, which means nights of 11th and 12th.
+                // console.log("date:", currentDate, endDate);
                 while(currentDate < endDate) {
                     const key = `${currentDate.getMonth() + 1}/${currentDate.getDate()}`;
                     accommodationMap[key] = accommodation;
                     currentDate.setDate(currentDate.getDate() + 1);
+                    // console.log("key:", key, accommodationMap[key]);
                 }
             }
             return accommodationMap;
@@ -503,6 +505,8 @@
                         if(dateParts) {
                             const key = `${dateParts[1]}/${dateParts[2]}`;
                             accommodationDataForDay = accommodationMap[key];
+                            // console.log("key:", key, accommodationMap);
+
                         }
                         renderDayDetails(day, accommodationDataForDay);
                     };
