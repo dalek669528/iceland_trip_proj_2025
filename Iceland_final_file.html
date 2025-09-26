@@ -206,10 +206,11 @@
 
         async function loadAllData() {
             try {
+                const fetchOptions = { cache: 'no-cache' };
                 const [itineraryResponse, accommodationResponse, guideResponse] = await Promise.all([
-                    fetch('itinerary.csv').catch(e => ({ ok: false, status: e.toString() })),
-                    fetch('accommodation.csv').catch(e => ({ ok: false, status: e.toString() })),
-                    fetch('guide.json').catch(e => ({ ok: false, status: e.toString() }))
+                    fetch('itinerary.csv', fetchOptions).catch(e => ({ ok: false, status: e.toString() })),
+                    fetch('accommodation.csv', fetchOptions).catch(e => ({ ok: false, status: e.toString() })),
+                    fetch('guide.json', fetchOptions).catch(e => ({ ok: false, status: e.toString() }))
                 ]);
 
                 if (!itineraryResponse.ok || !accommodationResponse.ok || !guideResponse.ok) {
@@ -298,7 +299,7 @@
                 const [dateRange, region, platform, roomType, breakfast, kitchen, parking, link, address, mapLink] = parts;
                 if (!dateRange || !dateRange.trim()) continue;
                 
-                const accommodation = { region, platform, name: link, roomType, parking, kitchen, mapLink };
+                const accommodation = { region, platform, name: link, roomType, parking, kitchen, breakfast, address, mapLink };
 
                 const [startDateStr, endDateStr] = dateRange.split('-');
                 if (!startDateStr) continue;
@@ -349,7 +350,7 @@
                         `}).join('')}
                     </div>
                 </div>`;
-            
+            console.log(accommodationData)
             const accommodationHtml = accommodationData ? `
                 <div>
                     <h3 class="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center">
@@ -364,14 +365,39 @@
                         <p class="text-gray-300 mt-1 mb-4 font-semibold text-sm sm:text-base">${accommodationData.name}</p>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-4">
-                            <div class="flex items-start"><i data-lucide="bed-double" class="w-4 h-4 mr-2 mt-1 text-gray-400 flex-shrink-0"></i><div><span class="font-semibold text-gray-300">房型:</span> ${accommodationData.roomType || 'N/A'}</div></div>
-                            <div class="flex items-center"><i data-lucide="parking-circle" class="w-4 h-4 mr-2 text-gray-400"></i><span class="font-semibold text-gray-300">停車:</span> ${accommodationData.parking || 'N/A'}</div>
-                            <div class="flex items-center"><i data-lucide="soup" class="w-4 h-4 mr-2 text-gray-400"></i><span class="font-semibold text-gray-300">廚房:</span> ${(accommodationData.kitchen && (accommodationData.kitchen.includes('v') || accommodationData.kitchen.includes('有'))) ? '提供' : '無'}</div>
+                            <div class="flex items-start">
+                                <i data-lucide="bed-double" class="w-4 h-4 mr-2 mt-1 text-gray-400 flex-shrink-0"></i>
+                                <div><span class="font-semibold text-gray-300">房型:</span> ${accommodationData.roomType || 'N/A'}</div>
+                            </div>
+                            <div class="flex items-center">
+                                <i data-lucide="parking-circle" class="w-4 h-4 mr-2 text-gray-400"></i>
+                                <span class="font-semibold text-gray-300 mr-2">停車:</span>
+                                ${(accommodationData.parking && accommodationData.parking.toLowerCase().includes('v')) ? '<i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i>'
+                                    : ((accommodationData.parking && accommodationData.parking.toLowerCase().includes('x')) ? '<i data-lucide="x-circle" class="w-4 h-4"></i>'
+                                        : (accommodationData.parking))
+                                }
+                            </div>
+                            <div class="flex items-center">
+                                <i data-lucide="soup" class="w-4 h-4 mr-2 text-gray-400"></i>
+                                <span class="font-semibold text-gray-300 mr-2">廚房:</span> 
+                                ${(accommodationData.kitchen && accommodationData.kitchen.toLowerCase().includes('v')) ? '<i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i>'
+                                    : ((accommodationData.kitchen && accommodationData.kitchen.toLowerCase().includes('x')) ? '<i data-lucide="x-circle" class="w-4 h-4"></i>'
+                                        : (accommodationData.kitchen))
+                                }
+                            </div>
+                            <div class="flex items-center">
+                                <i data-lucide="croissant" class="w-4 h-4 mr-2 text-gray-400"></i>
+                                <span class="font-semibold text-gray-300 mr-2">早餐:</span>
+                                ${(accommodationData.breakfast && accommodationData.breakfast.toLowerCase().includes('v')) ? '<i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i>'
+                                    : ((accommodationData.breakfast && accommodationData.breakfast.toLowerCase().includes('x')) ? '<i data-lucide="x-circle" class="w-4 h-4"></i>'
+                                        : (accommodationData.breakfast))
+                                }
+                            </div>
                         </div>
 
                         <a href="${accommodationData.mapLink}" target="_blank" rel="noopener noreferrer" class="mt-6 flex items-center text-blue-400 hover:text-blue-300 transition-colors duration-200 text-sm">
                            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
-                           <span class="underline">在 Google 地圖上查看</span>
+                           <span class="underline">${accommodationData.address}</span>
                         </a>
                     </div>
                 </div>
