@@ -486,7 +486,27 @@
                     dayTabsContainer.appendChild(tab);
                 });
                 
-                if (dayTabsContainer.firstElementChild) {
+                // --- 自動跳轉至當天行程 (使用 UTC 以確保時區正確) ---
+                const today = new Date();
+                // 冰島時區為 GMT(UTC+0)，我們使用 UTC 方法來獲取日期，避免裝置本地時區的影響
+                const currentMonth = today.getUTCMonth() + 1; // getUTCMonth() 是從 0 開始的
+                const currentDay = today.getUTCDate();
+                const todayFormatted = `${currentMonth} 月 ${currentDay} 日`;
+
+                let todayIndex = -1;
+                // 在所有行程資料中尋找符合今天日期的行程
+                itineraryData.forEach((day, index) => {
+                    if (day.date.startsWith(todayFormatted)) {
+                        todayIndex = index;
+                    }
+                });
+
+                // --- 點擊對應的分頁 ---
+                if (todayIndex !== -1 && dayTabsContainer.children[todayIndex]) {
+                    // 如果在旅途中，則點擊當天的分頁
+                    dayTabsContainer.children[todayIndex].click();
+                } else if (dayTabsContainer.firstElementChild) {
+                    // 如果不在旅途中 (例如旅行前或後)，則預設顯示第一天
                     dayTabsContainer.firstElementChild.click();
                 } else {
                     throw new Error("No itinerary data to display.");
