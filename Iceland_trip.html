@@ -279,7 +279,9 @@
                         currentDayData.events.push({
                             time: parts[0] || 'N/A',
                             activity: parts[1] || 'N/A',
-                            notes: parts[4] || ''
+                            notes: parts[4] || '',
+                            guideKey: parts[5] || '',
+                            googleMapLink: parts[6] || ''
                         });
                     }
                 }
@@ -336,7 +338,7 @@
                     </h3>
                     <div class="relative pl-8">
                         ${dayData.events.map(event => {
-                            const guideKey = Object.keys(guideContent).find(key => event.activity.includes(key));
+                            const guideKey = Object.keys(guideContent).find(key => event.guideKey.includes(key));
                             return `
                             <div class="timeline-item relative pl-8 pb-8">
                                 <div class="timeline-dot"></div>
@@ -344,6 +346,7 @@
                                 <h4 class="text-lg font-semibold text-gray-100 mt-1 flex items-center">
                                     ${event.activity}
                                     ${guideKey ? `<button class="guide-btn inline-block ml-3 text-yellow-400 hover:text-yellow-300" data-guide-key="${guideKey}"><i data-lucide="book-open" class="w-5 h-5"></i></button>` : ''}
+                                    ${event.googleMapLink ? `<a href="${event.googleMapLink}" target="_blank" rel="noopener noreferrer" class="inline-block ml-3 text-blue-400 hover:text-blue-300"><i data-lucide="map-pin" class="w-5 h-5"></i></a>` : ''}
                                 </h4>
                                 ${event.notes ? `<p class="text-gray-400 mt-1 text-sm">${event.notes}</p>` : ''}
                             </div>
